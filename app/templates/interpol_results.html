@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Interpol database search result</title>
+{% set n = search_result['_embedded']['notices']|length %}
+
+{% if search_result.get('_links').get('previous')['href'] is defined %}
+    <a href="\previous">|Назад|</a>
+{% endif %}
+{% if search_result.get('_links').get('next')['href'] is defined %}
+    {% if search_result.get('_links').get('next')['href'] != search_result.get('_links').get('last')['href'] %}
+        <a href="\next">|Далее|</a>
+    {% endif %}
+{% endif %}
+</head>
+<body>
+<p>
+<p> {{ 'ВСЕГО НАЙДЕНО:', search_result['total'] }}</p><br>
+
+{% for i in range(n) %}
+    {% if search_result['_embedded']['notices'][loop.index0]['_links'].get('thumbnail')['href'] is defined %}
+        <img align="left" src="{{ search_result['_embedded']['notices'][loop.index0]['_links'].get('thumbnail')['href'] }}">
+    {% else %}
+        <img align="left" src=" {{ url_for('static', filename='images/no_photo.png') }} ">
+    {% endif %}
+    <p> {{ 'Имя:',  search_result['_embedded']['notices'][loop.index0]['forename'] }}</p>
+    <p> {{ 'Фамилия:',  search_result['_embedded']['notices'][loop.index0]['name'] }}</p>
+    <p> {{ 'Дата рождения:',  search_result['_embedded']['notices'][loop.index0]['date_of_birth'] }}</p>
+    <p> {{ 'Гражданство(а):',  search_result['_embedded']['notices'][loop.index0]['nationalities'][:] }}</p>
+
+        {% set self_details = search_result['_embedded']['notices'][loop.index0]['_links'].get('self')['href'] %}
+        {% set info_dict = r.get(url=self_details).json() %}
+    <p>{{ 'Разыскивается страной:', info_dict.get('arrest_warrants')[0]['issuing_country_id'] }}</p>
+    <p>{{ 'Причина:', info_dict.get('arrest_warrants')[0]['charge'] }}</p>
+    <p>{{ 'Говорит на языках:', info_dict.get('languages_spoken_ids') }}</p>
+    <p>{{ 'Страна рождения:', info_dict.get('country_of_birth_id') }}</p>
+    <p>{{ 'Место рождения:', info_dict.get('place_of_birth') }}</p>
+    <hr/>
+    <br>
+{% endfor %}
+</body>
+
+</html>
